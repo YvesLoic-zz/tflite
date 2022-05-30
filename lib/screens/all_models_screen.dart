@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:goa/cards/found_object_card.dart';
 
 import 'package:tflite/tflite.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,6 +25,7 @@ class _AllModelsState extends State<AllModels> {
   double? _imageHeight;
   double? _imageWidth;
   bool _busy = false;
+  List foundObjects = [];
 
 // when the screen loads, 'initState' calls 'loadModel' to load all the models
   @override
@@ -171,33 +173,37 @@ class _AllModelsState extends State<AllModels> {
       }
       objects.add(x);
     }
-    print(objects);
+    foundObjects = _recognitions!;
+    print('found $foundObjects');
     return objects.map((re) {
       print(
-          '${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%');
-      return Positioned(
-        left: re["rect"]["x"] * factorX,
-        top: re["rect"]["y"] * factorY,
-        width: re["rect"]["w"] * factorX,
-        height: re["rect"]["h"] * factorY,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(
-              color: Colors.red,
-              width: 2,
-            ),
-          ),
-          child: Text(
-            "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%",
-            style: TextStyle(
-              background: Paint()..color = Colors.red,
-              color: Colors.white,
-              fontSize: 12.0,
-            ),
-          ),
-        ),
-      );
+          'renderBoxes ${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%');
+      return FoundObject(
+          name: "${re["detectedClass"]}",
+          percent: "${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%");
+      // return Positioned(
+      //   left: re["rect"]["x"] * factorX,
+      //   top: re["rect"]["y"] * factorY,
+      //   width: re["rect"]["w"] * factorX,
+      //   height: re["rect"]["h"] * factorY,
+      //   child: Container(
+      //     decoration: BoxDecoration(
+      //       borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+      //       border: Border.all(
+      //         color: Colors.red,
+      //         width: 2,
+      //       ),
+      //     ),
+      //     child: Text(
+      //       "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%",
+      //       style: TextStyle(
+      //         background: Paint()..color = Colors.red,
+      //         color: Colors.white,
+      //         fontSize: 12.0,
+      //       ),
+      //     ),
+      //   ),
+      // );
     }).toList();
   }
 
@@ -223,18 +229,28 @@ class _AllModelsState extends State<AllModels> {
                 ),
               ),
             )
-          : Image.file(_image!),
+          : Container(
+              padding: const EdgeInsets.all(5.0),
+              height: size.height / 2.5,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: FileImage(_image!),
+                ),
+              ),
+            ),
     ));
 
     stackChildren.addAll(renderBoxes(size));
 
-    if (_busy) {
-      stackChildren.add(const Opacity(
-        child: ModalBarrier(dismissible: false, color: Colors.grey),
-        opacity: 0.3,
-      ));
-      stackChildren.add(const Center(child: CircularProgressIndicator()));
-    }
+    // if (_busy) {
+    //   stackChildren.add(const Opacity(
+    //     child: ModalBarrier(dismissible: false, color: Colors.grey),
+    //     opacity: 0.3,
+    //   ));
+    //   stackChildren.add(const Center(child: CircularProgressIndicator()));
+    // }
 
     return Scaffold(
       appBar: AppBar(
@@ -264,8 +280,53 @@ class _AllModelsState extends State<AllModels> {
           )
         ],
       ),
-      body: Stack(
-        children: stackChildren,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _image == null
+              ? const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text(
+                    'No \nImage \nUploaded \n:(',
+                    style: TextStyle(
+                      color: Color(0xffaf8d6b),
+                      fontSize: 40,
+                      fontFamily: 'FjallaOne',
+                    ),
+                  ),
+                )
+              : Container(
+                  padding: const EdgeInsets.all(5.0),
+                  height: size.height / 2.5,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: FileImage(_image!),
+                    ),
+                  ),
+                ),
+          const SizedBox(
+            height: 5.0,
+          ),
+          _image != null
+              ? ListView.builder(
+                  itemCount: foundObjects.length,
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(top: 16),
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return FoundObject(
+                        name: "${foundObjects[index]["detectedClass"]}",
+                        percent:
+                            "${(foundObjects[index]["confidenceInClass"] * 100).toStringAsFixed(0)}%");
+                  },
+                )
+              : const SizedBox(
+                  height: 5.0,
+                ),
+        ],
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
