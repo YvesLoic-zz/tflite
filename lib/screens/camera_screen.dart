@@ -225,7 +225,49 @@ class _CameraScreenState extends State<CameraScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
-        children: stackChildren,
+        children: [
+          !controller!.value.isInitialized
+              ? const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text(
+                    'Camera \nsays \n404 \n:(',
+                    style: TextStyle(
+                      color: Color(0xffaf8d6b),
+                      fontSize: 40,
+                      fontFamily: 'FjallaOne',
+                    ),
+                  ),
+                )
+              : AspectRatio(
+                  aspectRatio: controller!.value.aspectRatio,
+                  child: CameraPreview(controller!),
+                ),
+          const SizedBox(
+            height: 5.0,
+          ),
+          _recognitions == null
+              ? const Icon(
+                  Icons.broken_image,
+                  size: 35.0,
+                )
+              : Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: ListView.builder(
+                      itemCount: _recognitions!.length,
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.only(top: 16),
+                      physics: const BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return FoundObject(
+                            name: "${_recognitions![index]["detectedClass"]}",
+                            percent:
+                                "${(_recognitions![index]["confidenceInClass"] * 100).toStringAsFixed(0)}%");
+                      },
+                    ),
+                  ),
+                )
+        ],
       ),
     );
   }
