@@ -1,6 +1,7 @@
 // ignore_for_file: unnecessary_null_comparison
 
 import 'dart:async';
+import 'package:goa/cards/found_object_card.dart';
 import 'package:tflite/tflite.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -154,6 +155,33 @@ class _CameraScreenState extends State<CameraScreen> {
     }).toList();
   }
 
+  Widget additionnalChild() {
+    if (_recognitions == null) {
+      return const Icon(
+        Icons.broken_image,
+        size: 35.0,
+      );
+    } else {
+      return Expanded(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ListView.builder(
+            itemCount: _recognitions!.length,
+            shrinkWrap: true,
+            padding: const EdgeInsets.only(top: 16),
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (context, index) {
+              return FoundObject(
+                  name: "${_recognitions![index]["detectedClass"]}",
+                  percent:
+                      "${(_recognitions![index]["confidenceInClass"] * 100).toStringAsFixed(0)}%");
+            },
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -163,7 +191,7 @@ class _CameraScreenState extends State<CameraScreen> {
       top: 0.0,
       left: 0.0,
       width: size.width,
-      height: size.height / 3,
+      height: size.height / 2.5,
       child: !controller!.value.isInitialized
           ? const Padding(
               padding: EdgeInsets.all(20.0),
@@ -182,7 +210,7 @@ class _CameraScreenState extends State<CameraScreen> {
             ),
     ));
 
-    stackChildren.addAll(renderBoxes(size));
+    stackChildren.add(additionnalChild());
 
     return Scaffold(
       appBar: AppBar(
@@ -194,7 +222,9 @@ class _CameraScreenState extends State<CameraScreen> {
         ),
         backgroundColor: const Color(0xff1B7E81),
       ),
-      body: Stack(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: stackChildren,
       ),
     );

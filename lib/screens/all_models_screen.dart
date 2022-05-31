@@ -297,7 +297,8 @@ class _AllModelsState extends State<AllModels> {
                   ),
                 )
               : Container(
-                  padding: const EdgeInsets.all(5.0),
+                  margin: const EdgeInsets.only(top: 5.0),
+                  // padding: const EdgeInsets.all(5.0),
                   height: size.height / 2.5,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
@@ -311,17 +312,22 @@ class _AllModelsState extends State<AllModels> {
             height: 5.0,
           ),
           _image != null
-              ? ListView.builder(
-                  itemCount: foundObjects.length,
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.only(top: 16),
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    return FoundObject(
-                        name: "${foundObjects[index]["detectedClass"]}",
-                        percent:
-                            "${(foundObjects[index]["confidenceInClass"] * 100).toStringAsFixed(0)}%");
-                  },
+              ? Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: ListView.builder(
+                      itemCount: foundObjects.length,
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.only(top: 16),
+                      physics: const BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return FoundObject(
+                            name: "${foundObjects[index]["detectedClass"]}",
+                            percent:
+                                "${(foundObjects[index]["confidenceInClass"] * 100).toStringAsFixed(0)}%");
+                      },
+                    ),
+                  ),
                 )
               : const SizedBox(
                   height: 5.0,

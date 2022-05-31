@@ -24,7 +24,7 @@ class FoundObject extends StatelessWidget {
         children: [
           ListTile(
             leading: CircleAvatar(
-              child: Text(setInitials()),
+              child: Text(setInitials().toUpperCase()),
             ),
             title: Text("Object found: $name"),
             subtitle: Column(
