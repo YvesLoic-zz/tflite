@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   image_picker: ^0.8.5+3
   camera: ^0.9.7
-  concentric_transition: ^1.0.1
+  concentric_transition: ^1.0.1+1
   tflite: ^1.1.1
 
 dev_dependencies:
