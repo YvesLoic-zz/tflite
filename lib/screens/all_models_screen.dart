@@ -158,99 +158,10 @@ class _AllModelsState extends State<AllModels> {
     }
   }
 
-// renders boxes over our image along with its attributes
-  List<Widget> renderBoxes(Size screen) {
-    if (_recognitions == null) return [];
-    if (_imageHeight == null) return [];
-
-    double factorX = screen.width;
-    double factorY = _imageHeight! / _imageWidth! * screen.width;
-
-    List<dynamic> objects = [];
-    for (var x in _recognitions!) {
-      if (x['confidenceInClass'] < 0.4) {
-        break;
-      }
-      objects.add(x);
-    }
-    foundObjects = _recognitions!;
-    print('found $foundObjects');
-    return objects.map((re) {
-      print(
-          'renderBoxes ${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%');
-      return FoundObject(
-          name: "${re["detectedClass"]}",
-          percent: "${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%");
-      // return Positioned(
-      //   left: re["rect"]["x"] * factorX,
-      //   top: re["rect"]["y"] * factorY,
-      //   width: re["rect"]["w"] * factorX,
-      //   height: re["rect"]["h"] * factorY,
-      //   child: Container(
-      //     decoration: BoxDecoration(
-      //       borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-      //       border: Border.all(
-      //         color: Colors.red,
-      //         width: 2,
-      //       ),
-      //     ),
-      //     child: Text(
-      //       "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%",
-      //       style: TextStyle(
-      //         background: Paint()..color = Colors.red,
-      //         color: Colors.white,
-      //         fontSize: 12.0,
-      //       ),
-      //     ),
-      //   ),
-      // );
-    }).toList();
-  }
-
 // stacks are used to display boxes over an image
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    List<Widget> stackChildren = [];
-
-    stackChildren.add(Positioned(
-      top: 0.0,
-      left: 0.0,
-      width: size.width,
-      child: _image == null
-          ? const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Text(
-                'No \nImage \nUploaded \n:(',
-                style: TextStyle(
-                  color: Color(0xffaf8d6b),
-                  fontSize: 40,
-                  fontFamily: 'FjallaOne',
-                ),
-              ),
-            )
-          : Container(
-              padding: const EdgeInsets.all(5.0),
-              height: size.height / 2.5,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: FileImage(_image!),
-                ),
-              ),
-            ),
-    ));
-
-    stackChildren.addAll(renderBoxes(size));
-
-    // if (_busy) {
-    //   stackChildren.add(const Opacity(
-    //     child: ModalBarrier(dismissible: false, color: Colors.grey),
-    //     opacity: 0.3,
-    //   ));
-    //   stackChildren.add(const Center(child: CircularProgressIndicator()));
-    // }
 
     return Scaffold(
       appBar: AppBar(
@@ -285,14 +196,29 @@ class _AllModelsState extends State<AllModels> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _image == null
-              ? const Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text(
-                    'No \nImage \nUploaded \n:(',
-                    style: TextStyle(
-                      color: Color(0xffaf8d6b),
-                      fontSize: 40,
-                      fontFamily: 'FjallaOne',
+              ? Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'No image uploaded :(',
+                          style: TextStyle(
+                            color: Color(0xffaf8d6b),
+                            fontSize: 38,
+                            fontFamily: 'FjallaOne',
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 5.0,
+                        ),
+                        Icon(
+                          Icons.broken_image,
+                          size: size.width / 4,
+                        )
+                      ],
                     ),
                   ),
                 )
@@ -311,7 +237,7 @@ class _AllModelsState extends State<AllModels> {
           const SizedBox(
             height: 5.0,
           ),
-          _image != null
+          _image != null && foundObjects.isNotEmpty
               ? Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -329,8 +255,28 @@ class _AllModelsState extends State<AllModels> {
                     ),
                   ),
                 )
-              : const SizedBox(
-                  height: 5.0,
+              : Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'No object found :(',
+                        style: TextStyle(
+                          color: Color(0xffaf8d6b),
+                          fontSize: 25,
+                          fontFamily: 'FjallaOne',
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 5.0,
+                      ),
+                      Icon(
+                        Icons.broken_image,
+                        size: size.width / 7,
+                      )
+                    ],
+                  ),
                 ),
         ],
       ),

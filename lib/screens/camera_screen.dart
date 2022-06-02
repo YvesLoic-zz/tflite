@@ -1,5 +1,3 @@
-// ignore_for_file: unnecessary_null_comparison
-
 import 'dart:async';
 import 'package:goa/cards/found_object_card.dart';
 import 'package:tflite/tflite.dart';
@@ -55,10 +53,12 @@ class _CameraScreenState extends State<CameraScreen> {
         ssdMobileNet(img);
         print('SSD completete');
       }
-      setState(() {
-        _imageHeight = img.width;
-        _imageWidth = img.height;
-      });
+      if (mounted) {
+        setState(() {
+          _imageHeight = img.width;
+          _imageWidth = img.height;
+        });
+      }
     });
   }
 
@@ -100,117 +100,19 @@ class _CameraScreenState extends State<CameraScreen> {
         threshold: 0.1, // defaults to 0.1
         asynch: true // defaults to true
         );
-    setState(() {
-      _recognitions = recognitions;
-      isDetecting = false;
-    });
+    if (mounted) {
+      setState(() {
+        _recognitions = recognitions;
+        isDetecting = false;
+      });
+    }
     int endTime = DateTime.now().millisecondsSinceEpoch;
     print("Inference took ${endTime - startTime}ms");
-  }
-
-// renders boxes over our image along with its attributes
-  List<Widget> renderBoxes(Size screen) {
-    if (_recognitions == null) return [];
-    if (_imageHeight == null || _imageWidth == null) return [];
-
-    double factorX = screen.width;
-    double factorY = _imageHeight! / _imageWidth! * screen.width;
-    print('$factorX --- $factorY ----- $_imageHeight ------ $_imageWidth');
-    Color blue = const Color.fromRGBO(37, 213, 253, 1.0);
-    List<dynamic> objects = [];
-    for (var x in _recognitions!) {
-      if (x['confidenceInClass'] < 0.4) {
-        break;
-      }
-      objects.add(x);
-    }
-    print(objects);
-    return objects.map((re) {
-      print(
-          '${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%');
-
-      return Positioned(
-        left: re["rect"]["x"] * factorX,
-        top: re["rect"]["y"] * factorY,
-        width: re["rect"]["w"] * factorX,
-        height: re["rect"]["h"] * factorY,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(
-              color: blue,
-              width: 2,
-            ),
-          ),
-          child: Text(
-            "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%",
-            style: TextStyle(
-              background: Paint()..color = blue,
-              color: Colors.white,
-              fontSize: 12.0,
-            ),
-          ),
-        ),
-      );
-    }).toList();
-  }
-
-  Widget additionnalChild() {
-    if (_recognitions == null) {
-      return const Icon(
-        Icons.broken_image,
-        size: 35.0,
-      );
-    } else {
-      return Expanded(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: ListView.builder(
-            itemCount: _recognitions!.length,
-            shrinkWrap: true,
-            padding: const EdgeInsets.only(top: 16),
-            physics: const BouncingScrollPhysics(),
-            itemBuilder: (context, index) {
-              return FoundObject(
-                  name: "${_recognitions![index]["detectedClass"]}",
-                  percent:
-                      "${(_recognitions![index]["confidenceInClass"] * 100).toStringAsFixed(0)}%");
-            },
-          ),
-        ),
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    List<Widget> stackChildren = [];
-    print('width at stacking = ${size.width}');
-    stackChildren.add(Positioned(
-      top: 0.0,
-      left: 0.0,
-      width: size.width,
-      height: size.height / 2.5,
-      child: !controller!.value.isInitialized
-          ? const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Text(
-                'Camera \nsays \n404 \n:(',
-                style: TextStyle(
-                  color: Color(0xffaf8d6b),
-                  fontSize: 40,
-                  fontFamily: 'FjallaOne',
-                ),
-              ),
-            )
-          : AspectRatio(
-              aspectRatio: controller!.value.aspectRatio,
-              child: CameraPreview(controller!),
-            ),
-    ));
-
-    stackChildren.add(additionnalChild());
 
     return Scaffold(
       appBar: AppBar(
@@ -227,14 +129,29 @@ class _CameraScreenState extends State<CameraScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           !controller!.value.isInitialized
-              ? const Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text(
-                    'Camera \nsays \n404 \n:(',
-                    style: TextStyle(
-                      color: Color(0xffaf8d6b),
-                      fontSize: 40,
-                      fontFamily: 'FjallaOne',
+              ? Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'No available camera :(',
+                          style: TextStyle(
+                            color: Color(0xffaf8d6b),
+                            fontSize: 36,
+                            fontFamily: 'FjallaOne',
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 5.0,
+                        ),
+                        Icon(
+                          Icons.broken_image,
+                          size: size.width / 4,
+                        )
+                      ],
                     ),
                   ),
                 )
@@ -246,9 +163,28 @@ class _CameraScreenState extends State<CameraScreen> {
             height: 5.0,
           ),
           _recognitions == null
-              ? const Icon(
-                  Icons.broken_image,
-                  size: 35.0,
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'No objetcs found :(',
+                        style: TextStyle(
+                          color: Color(0xffaf8d6b),
+                          fontSize: 25,
+                          fontFamily: 'FjallaOne',
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 5.0,
+                      ),
+                      Icon(
+                        Icons.broken_image,
+                        size: size.width / 7,
+                      )
+                    ],
+                  ),
                 )
               : Expanded(
                   child: SingleChildScrollView(
