@@ -121,6 +121,7 @@ class _AllModelsState extends State<AllModels> {
     );
     setState(() {
       _recognitions = recognitions; // sets '_recognitions'
+      foundObjects = recognitions!;
     });
     int endTime = DateTime.now().millisecondsSinceEpoch;
     print("Inference took ${endTime - startTime}ms");
@@ -135,6 +136,7 @@ class _AllModelsState extends State<AllModels> {
     );
     setState(() {
       _recognitions = recognitions; // sets '_recognitions'
+      foundObjects = recognitions!;
     });
     int endTime = DateTime.now().millisecondsSinceEpoch;
     print("Inference took ${endTime - startTime}ms");
@@ -237,7 +239,7 @@ class _AllModelsState extends State<AllModels> {
           const SizedBox(
             height: 5.0,
           ),
-          _image != null && foundObjects.isNotEmpty
+          foundObjects.isNotEmpty
               ? Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
